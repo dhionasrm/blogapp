@@ -3,6 +3,8 @@ const router = express.Router()
 const mongoose = require("mongoose")
 require("../models/Categoria")
 const Categoria = mongoose.model("categorias")
+require('../models/Postagem')
+const Postagem = mongoose.model("postagens")
 
 router.get('/', (req, res) => {
     res.render("admin/index")
@@ -54,7 +56,7 @@ router.post("/categorias/nova", (req, res) => {
             res.redirect("/admin/categorias")
         }).catch((err) => {
             req.flash("error_msg", "Houve um erro ao salvar a categoria, tente novamente!")
-            res.redirect("/admin/")
+            res.redirect("/admin")
         })
 
     }
@@ -83,7 +85,7 @@ router.post("/categorias/edit", (req, res) => {
             req.flash("success_msg", "Categoria editada com sucesso!")
             res.redirect("/admin/categorias")
         }).catch((err) => {
-            req.flash("error_msg", "houve um erro interno ao salvar e editar a edição da categoria")
+            req.flash("error_msg", "Houve um erro interno ao salvar e editar a edição da categoria")
             res.redirect("/admin/categorias")
         })
 
@@ -105,7 +107,13 @@ router.post("/categorias/deletar", (req, res) => {
 })
 
 router.get("/postagens", (req, res) => {
-    res.render("admin/postagens")
+
+    Postagem.find().populate("categoria").sort({data:"desc"}).lean().then((postagens) => {
+        res.render("admin/postagens", {postagens: postagens})
+    }).catch((err) => {
+        req.flash("error_msg", "Houve um erro ao listar as postagens")
+        res.redirect("/admin")
+    })   
 })
 
 router.get("/postagens/add", (req, res) => {
@@ -116,6 +124,35 @@ router.get("/postagens/add", (req, res) => {
         res.redirect("/admin")
     })
     
+})
+
+router.post("/postagens/nova", (req, res) => {
+
+    var erros = []
+
+    if(req.body.Categoria == "0"){
+        erros.push({texto: "Categoria inválida, registre uma categoria"})
+    }
+
+    if (erros.length > 0) {
+        res.render("admin/addpostagem", {erros: erros})
+    } else {
+        const novaPostagem = {
+            titulo: req.body.titulo,
+            descricao: req.body.descricao,
+            conteudo: req.body.conteudo,
+            categoria: req.body.categoria,
+            slug: req.body.slug
+        }
+
+        new Postagem(novaPostagem).save().then(() => {
+            req.flash("success_msg", "Postagem criada com sucesso!")
+            res.redirect("/admin/postagens")
+        }).catch((err) => {
+            req.flash("error_msg", "Houve um erro durante o salvamento da postagem")
+            res.redirect("/admin/postagens")
+        })
+    }
 })
 
 module.exports = router
