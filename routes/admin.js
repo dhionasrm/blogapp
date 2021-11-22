@@ -172,29 +172,39 @@ router.get("/postagens/edit/:id", (req, res) => {
     
 })
 
-router.post("/postagens/edit", (req, res) => {
+router.post('/postagens/edit/', (req, res) => {
 
-    Postagem.findOne({_id: req.body.id}).lean().then((postagem) => {
+    Postagem.findByIdAndUpdate({_id: req.body.id}).sort().then((postagem) => {
 
         postagem.titulo = req.body.titulo
         postagem.slug = req.body.slug
         postagem.descricao = req.body.descricao
         postagem.conteudo = req.body.conteudo
-        postagem.categorias = req.body.categorias
+        postagem.categoria = req.body.categoria
 
         postagem.save().then(() => {
-            req.flash("success_msg", "Postagem editada com sucesso!")
-            res.redirect("/admin/postagens")
+            req.flash('success_msg', 'Postagem editada com sucesso!')
+            res.redirect('/admin/postagens')
         }).catch((err) => {
-            req.flash("error_msg", "Erro interno")
-            res.redirect("/admin/postagens")
+            req.flash('error_msg", "Erro interno')
+            res.redirect('/admin/postagens')
         })
 
     }).catch((err) => {
-        req.flash("error_msg", "Houve um erro ao salvar a edição")
-        res.redirect("/admin/postagens")
+        req.flash('error_msg', 'Houve um erro ao salvar a edição')
+        res.redirect('/admin/postagens')
     })
 
+})
+
+router.get("/postagens/deletar/:id", (req, res) => {
+    Postagem.remove({_id: req.params.id}).then(() => {
+        req.flash("success_msg", "Postagem deletada com sucesso!")
+        res.redirect("/admin/postagens")
+    }).catch((err) => {
+        req.flash("error_msg", "Houve um erro interno")
+        res.redirect("/admin/postagens")
+    })
 })
 
 
