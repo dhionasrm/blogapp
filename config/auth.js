@@ -11,7 +11,7 @@ module.exports = function(passport){
 
     passport.use(new localStrategy({usernameField: 'email', passwordField: "senha"}, (email, senha, done) => {
 
-        Usuario.findOne({email: email}).then((usuario) => {
+        Usuario.findOne({email: email}).lean().then((usuario) => {
             if(!usuario){
                 return done(null, false, {message: "Está conta não existe"})
             }
